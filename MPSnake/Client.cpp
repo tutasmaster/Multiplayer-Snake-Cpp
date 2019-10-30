@@ -1,12 +1,6 @@
-﻿// MPSnake.cpp : Defines the entry point for the application.
-//
-
-#include "MPSnake.h"
-
-using namespace std;
+﻿#include "Client.hpp"
 
 int main()
 {
-	cout << "Hello CMake." << endl;
 	return 0;
 }
