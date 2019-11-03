@@ -23,21 +23,26 @@ void Server::Start() {
 
 
 
-	ENetEvent event;
+	ENetEvent e;
 
-	while (enet_host_service(server, &event, 0) >= 0)
+	while (enet_host_service(server, &e, 0) >= 0)
 	{
-		switch (event.type)
+		switch (e.type)
 		{
 		case ENET_EVENT_TYPE_CONNECT:
 			std::cout << "A client has connected!\n";
 			break;
 		case ENET_EVENT_TYPE_RECEIVE:
 			std::cout << "A client has sent a message!\n";
-			enet_packet_destroy(event.packet);
+			enet_packet_destroy(e.packet);
 			break;
 		case ENET_EVENT_TYPE_DISCONNECT:
 			std::cout << "A client has disconnected!\n";
+			break;
+		case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
+			std::cout << "A client has timed out!\n";
+			break;
+		default:
 			break;
 		}
 	}
