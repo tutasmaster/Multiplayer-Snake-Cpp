@@ -12,7 +12,7 @@ void Server::Start() {
 	address.host = ENET_HOST_ANY;
 	address.port = 7777;
 
-	ENetHost* server = enet_host_create(&address, 32, 2, 0, 0);
+	server = enet_host_create(&address, 32, 2, 0, 0);
 
 	if (server == NULL) {
 		std::cout << "ENET failed to start the server!\n";
@@ -31,6 +31,7 @@ void Server::Start() {
 		{
 		case ENET_EVENT_TYPE_CONNECT:
 			std::cout << "A client has connected!\n";
+			SendGameData(e.peer);
 			break;
 		case ENET_EVENT_TYPE_RECEIVE:
 			std::cout << "A client has sent a message!\n";
@@ -49,6 +50,22 @@ void Server::Start() {
 
 	enet_host_destroy(server);
 	enet_deinitialize();
+}
+
+void Server::SendString(std::string data,ENetPeer * peer, enet_uint32 flags = ENET_PACKET_FLAG_RELIABLE) {
+	ENetPacket* packet = enet_packet_create(data.c_str(), data.size(), flags);
+	enet_peer_send(peer, 0, packet);
+	enet_host_flush(server);
+	enet_packet_destroy(packet);
+}
+
+void Server::SendGameData(ENetPeer* peer)
+{
+	Serial::Packet p;
+	p << MESSAGE_TYPE::GAME_DATA << map_width << map_height;
+	ENetPacket* packet = p.GetENetPacket();
+	enet_peer_send(peer, 0, packet);
+	enet_host_flush(server);
 }
 
 int main() {

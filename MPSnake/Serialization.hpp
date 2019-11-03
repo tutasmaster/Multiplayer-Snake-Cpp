@@ -14,6 +14,18 @@ namespace Serial {
 		Packet(ENetPacket* p) {
 			for (auto i = 0; i < p->dataLength; i++)
 				data.push_back(p->data[i]);
+			_packet = p;
+		}
+
+		~Packet() {
+			if(_packet != NULL)
+				enet_packet_destroy(_packet);
+		}
+
+		ENetPacket* GetENetPacket(enet_uint32 flags = ENET_PACKET_FLAG_RELIABLE) {
+			if (_packet == NULL) 
+				_packet = enet_packet_create(&data[0], data.size(), flags);
+			return _packet;
 		}
 
 		Packet& operator<<(unsigned char d) { data.push_back(d); return *this; }
@@ -40,5 +52,7 @@ namespace Serial {
 			}
 			return *this;
 		}
+	private:
+		ENetPacket * _packet = NULL;
 	};
 }

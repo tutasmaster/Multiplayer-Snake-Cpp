@@ -3,11 +3,14 @@
 #define ENET_IMPLEMENTATION
 #include "enet.h"
 #include "SFML/Graphics.hpp"
+#include "Serialization.hpp"
+#include "Message.hpp"
 #include <iostream>
 #include <vector>
 
 struct Map {
-
+	Map(int w,int h) : width(w), height(h){}
+	enet_uint16 width, height;
 };
 
 struct Snake {
@@ -23,12 +26,15 @@ struct Snake {
 
 class Client {
 public:
+
+
 	Client();
 	void Start();
 
 	/*GAME_LOGIC*/
-	Snake local_snake;
-	Snake other_snake;
+	std::vector<Snake> snake;
+
+	std::unique_ptr<Map> map = nullptr;
 
 	/*NETWORKING*/
 	int Connect(std::string ip, enet_uint16 port);

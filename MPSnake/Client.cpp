@@ -47,6 +47,27 @@ void Client::SendString(std::string data, enet_uint32 flags = ENET_PACKET_FLAG_R
 }
 
 int Client::Handshake() {
+	ENetEvent e;
+	while (enet_host_service(client, &e, 5000) >= 0)
+	{
+		std::cout << e.type << "\n";
+		switch (e.type)
+		{
+		case ENET_EVENT_TYPE_RECEIVE:
+			std::cout << "A client has sent a message!\n";
+			Serial::Packet packet(e.packet);
+			char type;
+			packet >> type;
+			if (type != MESSAGE_TYPE::GAME_DATA)
+				return 3;
+			short width, height;
+			packet >> width >> height;
+			map = std::make_unique<Map>(width, height);
+			std::cout << "Width: " << width << " Height: " << height << "\n";
+			return 0;
+			break;
+		}
+	}
 	return 0;
 }
 
@@ -102,6 +123,17 @@ void Client::Start() {
 		}
 
 		float fps = clock.restart().asSeconds();
+
+		sf::RectangleShape rs(sf::Vector2f(600 / map->width, 600 / map->height));
+		rs.setOutlineColor(sf::Color::Black);
+		rs.setOutlineThickness(1);
+		for (int j = 0; j < map->height; j++) {
+			for (int i = 0; i < map->width; i++) {
+				rs.setPosition(sf::Vector2f(i * (600 / map->width), j * (600 / map->height)));
+				render_window.draw(rs);
+			}
+		}
+
 		//std::cout << "FPS: " << 1 / fp << "\n";
 
 
