@@ -27,6 +27,9 @@ struct Snake {
 class Client {
 public:
 
+	struct NetworkData {
+		enet_uint16 id;
+	}network_data;
 
 	Client();
 	void Start();

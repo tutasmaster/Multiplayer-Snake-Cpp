@@ -58,12 +58,15 @@ int Client::Handshake() {
 			Serial::Packet packet(e.packet);
 			char type;
 			packet >> type;
-			if (type != MESSAGE_TYPE::GAME_DATA)
+
+			//UPDATE THE PLAYER'S DATA FIRST
+
+			if (type != MESSAGE_TYPE::PLAYER_DATA)
 				return 3;
-			short width, height;
-			packet >> width >> height;
-			map = std::make_unique<Map>(width, height);
-			std::cout << "Width: " << width << " Height: " << height << "\n";
+			unsigned short id = 0;
+			packet >> id;
+			network_data.id = id;
+			std::cout << "NETWORK_ID: " << id << "\n";
 			return 0;
 			break;
 		}
