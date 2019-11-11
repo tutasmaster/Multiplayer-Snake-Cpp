@@ -33,8 +33,19 @@ void Server::Start() {
 			OnConnect(e);
 			break;
 		case ENET_EVENT_TYPE_RECEIVE:
+		{
 			std::cout << "A client has sent a message!\n";
+			User * client = FindClient(e.peer);
+			char packet_id;
+			Serial::Packet p(e.packet);
+			p >> packet_id;
+			switch (packet_id) {
+			case MESSAGE_TYPE::READY:
+				client->is_ready = true;
+				break;
+			}
 			enet_packet_destroy(e.packet);
+		}
 			break;
 		case ENET_EVENT_TYPE_DISCONNECT:
 			OnDisconnect(e);
@@ -46,10 +57,41 @@ void Server::Start() {
 		default:
 			break;
 		}
+
+		if (current_status == GameStatus::waiting_for_players) {
+			if (connected_clients.size() >= 2)
+				OnWaitForPlayers();
+		}
+		else if (current_status == GameStatus::starting) {
+			bool hasStarted = true;
+			for (auto& c : connected_clients) 
+				hasStarted = c.is_ready ? c.is_ready : false;
+			
+			if (hasStarted) OnStart();
+		}
 	}
 
 	enet_host_destroy(server);
 	enet_deinitialize();
+}
+
+Server::User * Server::FindClient(ENetPeer* peer) {
+	auto it = std::find(connected_clients.begin(), connected_clients.end(), peer);
+	return it._Ptr;
+}
+
+void Server::OnWaitForPlayers() {
+	for (auto& c : connected_clients) 
+		SendGameData(c.peer);
+
+	current_status = starting;
+}
+
+void Server::OnStart() {
+	current_status = in_game;
+
+	for (auto& c : connected_clients)
+		SendGameStart(c);
 }
 
 void Server::SendString(std::string data,ENetPeer * peer, enet_uint32 flags = ENET_PACKET_FLAG_RELIABLE) {
@@ -89,6 +131,14 @@ void Server::SendGameData(ENetPeer* peer)
 void Server::SendUserData(User& user) {
 	Serial::Packet p;
 	p << MESSAGE_TYPE::PLAYER_DATA << (unsigned short)user.id;
+	ENetPacket* packet = p.GetENetPacket();
+	enet_peer_send(user.peer, 0, packet);
+	enet_host_flush(server);
+}
+
+void Server::SendGameStart(User& user) {
+	Serial::Packet p;
+	p << MESSAGE_TYPE::START_MATCH;
 	ENetPacket* packet = p.GetENetPacket();
 	enet_peer_send(user.peer, 0, packet);
 	enet_host_flush(server);
