@@ -93,6 +93,40 @@ void Client::SendReady() {
 	enet_host_flush(client);
 }
 
+
+void Client::SendDirection() {
+	Serial::Packet ready_pack;
+	ready_pack << MESSAGE_TYPE::DIRECTION << my_snake.direction;
+	ENetPacket* packet = ready_pack.GetENetPacket();
+	enet_peer_send(server, 0, packet);
+	enet_host_flush(client);
+}
+
+
+void Client::DrawMap()
+{
+	sf::RectangleShape rs(sf::Vector2f(600 / map->width, 600 / map->height));
+	rs.setOutlineColor(sf::Color::Black);
+	rs.setOutlineThickness(1);
+	for (int j = 0; j < map->height; j++) {
+		for (int i = 0; i < map->width; i++) {
+			rs.setPosition(sf::Vector2f(i * (600 / map->width), j * (600 / map->height)));
+			render_window.draw(rs);
+		}
+	}
+}
+
+void Client::DrawSnake(Snake* snake) {
+	sf::RectangleShape rs(sf::Vector2f(600 / map->width, 600 / map->height));
+	rs.setOutlineColor(sf::Color::Black);
+	rs.setFillColor(sf::Color::Green);
+	rs.setOutlineThickness(1);
+	for (auto n : snake->body) {
+		rs.setPosition(n.x * (600 / map->width), n.y * (600 / map->height));
+		render_window.draw(rs);
+	}
+}
+
 int Client::Connect(std::string ip, enet_uint16 port) {
 	if (enet_initialize() != 0)
 		return 1;
@@ -165,12 +199,25 @@ void Client::Start() {
 				Disconnect();
 				render_window.close();
 			}
+			else if (e.type == sf::Event::KeyPressed) {
+				if (e.key.code == sf::Keyboard::Right) {
+					my_snake.direction++;
+					SendDirection();
+				}
+				else if (e.key.code == sf::Keyboard::Left) {
+					my_snake.direction--;
+					SendDirection();
+				}
+			}
 		}
 
 		float fps = clock.restart().asSeconds();
 
 		//std::cout << "FPS: " << 1 / fp << "\n";
+		DrawMap();
 
+		DrawSnake(&other_snake);
+		DrawSnake(&my_snake);
 
 		render_window.display();
 	}
