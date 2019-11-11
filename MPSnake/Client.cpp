@@ -54,24 +54,43 @@ int Client::Handshake() {
 		switch (e.type)
 		{
 		case ENET_EVENT_TYPE_RECEIVE:
-			std::cout << "A client has sent a message!\n";
+			std::cout << "The server has sent a message!\n";
 			Serial::Packet packet(e.packet);
 			char type;
 			packet >> type;
 
 			//UPDATE THE PLAYER'S DATA FIRST
 
-			if (type != MESSAGE_TYPE::PLAYER_DATA)
-				return 3;
-			unsigned short id = 0;
-			packet >> id;
-			network_data.id = id;
-			std::cout << "NETWORK_ID: " << id << "\n";
-			return 0;
+			if (type == MESSAGE_TYPE::PLAYER_DATA){
+				unsigned short id = 0;
+				packet >> id;
+				network_data.id = id;
+				std::cout << "NETWORK_ID: " << id << "\n";
+			}
+			else if (type == MESSAGE_TYPE::GAME_DATA) {
+				unsigned short width = 0;
+				unsigned short height = 0;
+
+				packet >> width >> height;
+				map = std::make_unique<Map>(width, height);
+				std::cout << "MAP_SIZE: " << width << " , " << height << "\n";
+				SendReady();
+			}
+			else if (type == MESSAGE_TYPE::START_MATCH) {
+				return 0;
+			}
 			break;
 		}
 	}
 	return 0;
+}
+
+void Client::SendReady() {
+	Serial::Packet ready_pack;
+	ready_pack << MESSAGE_TYPE::READY;
+	ENetPacket* packet = ready_pack.GetENetPacket();
+	enet_peer_send(server, 0, packet);
+	enet_host_flush(client);
 }
 
 int Client::Connect(std::string ip, enet_uint16 port) {
@@ -116,7 +135,30 @@ void Client::Start() {
 
 	sf::Clock clock;
 
+
 	while (render_window.isOpen()) {
+		ENetEvent network_event;
+		while (enet_host_service(client, &network_event, 0) > 0)
+		{
+			switch (network_event.type)
+			{
+			case ENET_EVENT_TYPE_CONNECT:
+				break;
+			case ENET_EVENT_TYPE_RECEIVE:
+			{
+				std::cout << "The server has sent a message!\n";
+				enet_packet_destroy(network_event.packet);
+			}
+			break;
+			case ENET_EVENT_TYPE_DISCONNECT:
+				break;
+			case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
+				break;
+			default:
+				break;
+			}
+		}
+
 		sf::Event e;
 		while (render_window.pollEvent(e)) {
 			if (e.type == sf::Event::Closed){
@@ -126,16 +168,6 @@ void Client::Start() {
 		}
 
 		float fps = clock.restart().asSeconds();
-
-		sf::RectangleShape rs(sf::Vector2f(600 / map->width, 600 / map->height));
-		rs.setOutlineColor(sf::Color::Black);
-		rs.setOutlineThickness(1);
-		for (int j = 0; j < map->height; j++) {
-			for (int i = 0; i < map->width; i++) {
-				rs.setPosition(sf::Vector2f(i * (600 / map->width), j * (600 / map->height)));
-				render_window.draw(rs);
-			}
-		}
 
 		//std::cout << "FPS: " << 1 / fp << "\n";
 

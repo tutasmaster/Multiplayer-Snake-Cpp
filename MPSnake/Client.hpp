@@ -45,6 +45,8 @@ public:
 	int Handshake();
 	void SendString(std::string data, enet_uint32 flags); //ENET_PACKET_FLAG
 
+	void SendReady();
+
 	sf::RenderWindow render_window;
 
 	ENetHost* client = nullptr;

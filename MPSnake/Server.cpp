@@ -44,7 +44,6 @@ void Server::Start() {
 				client->is_ready = true;
 				break;
 			}
-			enet_packet_destroy(e.packet);
 		}
 			break;
 		case ENET_EVENT_TYPE_DISCONNECT:
