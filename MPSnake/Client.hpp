@@ -21,7 +21,7 @@ struct Snake {
 	std::vector<Node> body;
 	char direction = 0;
 	void OnMove() {
-		for (auto i = 1; i < size-1; i++) {
+		for (auto i = 1; i < body.size(); i++) {
 			body[i].x = body[i - 1].x;
 			body[i].y = body[i - 1].y;
 		}

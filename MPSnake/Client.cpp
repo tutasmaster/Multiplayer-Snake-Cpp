@@ -36,7 +36,7 @@
 }*/
 
 Client::Client() : 
-	render_window(sf::VideoMode(600,600),"Snake",sf::Style::Close | sf::Style::Titlebar){
+	render_window(sf::VideoMode(300,300),"Snake",sf::Style::Close | sf::Style::Titlebar){
 
 }
 void Client::SendString(std::string data, enet_uint32 flags = ENET_PACKET_FLAG_RELIABLE) {
@@ -105,24 +105,24 @@ void Client::SendDirection() {
 
 void Client::DrawMap()
 {
-	sf::RectangleShape rs(sf::Vector2f(600 / map->width, 600 / map->height));
+	sf::RectangleShape rs(sf::Vector2f(300 / map->width, 300 / map->height));
 	rs.setOutlineColor(sf::Color::Black);
 	rs.setOutlineThickness(1);
 	for (int j = 0; j < map->height; j++) {
 		for (int i = 0; i < map->width; i++) {
-			rs.setPosition(sf::Vector2f(i * (600 / map->width), j * (600 / map->height)));
+			rs.setPosition(sf::Vector2f(i * (300 / map->width), j * (300 / map->height)));
 			render_window.draw(rs);
 		}
 	}
 }
 
 void Client::DrawSnake(Snake* snake) {
-	sf::RectangleShape rs(sf::Vector2f(600 / map->width, 600 / map->height));
+	sf::RectangleShape rs(sf::Vector2f(300 / map->width, 300 / map->height));
 	rs.setOutlineColor(sf::Color::Black);
 	rs.setFillColor(sf::Color::Green);
 	rs.setOutlineThickness(1);
 	for (auto n : snake->body) {
-		rs.setPosition(n.x * (600 / map->width), n.y * (600 / map->height));
+		rs.setPosition(n.x * (300 / map->width), n.y * (300 / map->height));
 		render_window.draw(rs);
 	}
 }
@@ -135,7 +135,7 @@ int Client::Connect(std::string ip, enet_uint16 port) {
 	enet_address_set_host(&address, ip.c_str());
 	address.port = port;
 
-	client = enet_host_create(NULL, 12, 1, 0, 0);
+	client = enet_host_create(NULL, 1, 1, 0, 0);
 	server = enet_host_connect(client, &address, 2, 0);
 
 	ENetEvent e;
@@ -160,7 +160,7 @@ void Client::Disconnect() {
 }
 
 void Client::Start() {
-	int r = Connect("192.168.111.169", 7777);
+	int r = Connect("127.0.0.1", 7777);
 	if (r != 0) {
 		std::cout << "Failed to connect! ERR:" << r << "\n" ;
 		return;
@@ -168,7 +168,7 @@ void Client::Start() {
 	
 
 	sf::Clock clock;
-
+	render_window.setFramerateLimit(30);
 
 	while (render_window.isOpen()) {
 		ENetEvent network_event;

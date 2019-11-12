@@ -24,8 +24,7 @@ void Server::Start() {
 
 
 	ENetEvent e;
-	bool running = true;
-	while (running)
+	while (true)
 	{
 		enet_host_service(server, &e, 0);
 		switch (e.type)
@@ -37,6 +36,8 @@ void Server::Start() {
 		{
 			User * client = FindClient(e.peer);
 			char packet_id;
+			if (e.packet == nullptr)
+				break;
 			Serial::Packet p(e.packet);
 			p >> packet_id;
 			switch (packet_id) {
@@ -45,7 +46,6 @@ void Server::Start() {
 				break;
 			case MESSAGE_TYPE::DIRECTION:
 				p >> client->direction;
-				client->is_ready = true;
 				break;
 			default:
 				std::cout << "UNRECOGNIZED MESSAGE RECEIVED!\n";

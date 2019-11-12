@@ -56,7 +56,7 @@ public:
 	enet_uint16 current_id = 0;
 
 	sf::Clock game_clock;
-	const float timestep = 0.2;
+	const float timestep = 1;
 
 	ENetHost* server = NULL;
 };
