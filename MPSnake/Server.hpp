@@ -5,6 +5,7 @@
 #include <iostream>
 #include "Serialization.hpp"
 #include "Message.hpp"
+#include "SFML/System.hpp"
 
 class Server {
 public:
@@ -13,6 +14,8 @@ public:
 		ENetPeer* peer = NULL;
 		enet_uint16 id = 0;
 		bool is_ready = false;
+
+		unsigned short x = 0, y = 0;
 
 		bool operator== (ENetPeer* p) { return peer == p; }
 	};
@@ -41,13 +44,18 @@ public:
 	void OnDisconnect(ENetEvent& e);
 	void OnStart();
 	void OnWaitForPlayers();
+	void OnTick();
 
 	void SendUserData(User& user);
 	void SendGameData(ENetPeer* peer);
 	void SendGameStart(User& user);
+	void SendPlayerPosition(User& userA, User& userB);
 
 	std::vector<User> connected_clients;
 	enet_uint16 current_id = 0;
+
+	sf::Clock game_clock;
+	const float timestep = 0.2;
 
 	ENetHost* server = NULL;
 };

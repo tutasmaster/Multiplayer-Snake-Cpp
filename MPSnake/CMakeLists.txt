@@ -12,3 +12,4 @@ add_executable (MPSnakeServer "Server.cpp" "Server.hpp" "enet.h" "Serialization.
 
 # TODO: Add tests and install targets if needed.
 target_link_libraries(MPSnakeClient sfml-graphics sfml-audio sfml-system)
+target_link_libraries(MPSnakeServer sfml-system)

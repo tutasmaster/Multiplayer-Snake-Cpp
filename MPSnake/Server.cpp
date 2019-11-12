@@ -68,6 +68,12 @@ void Server::Start() {
 			
 			if (hasStarted) OnStart();
 		}
+		else {
+			if (game_clock.getElapsedTime().asSeconds() > timestep) {
+				game_clock.restart();
+				OnTick();
+			}
+		}
 	}
 
 	enet_host_destroy(server);
@@ -91,6 +97,12 @@ void Server::OnStart() {
 
 	for (auto& c : connected_clients)
 		SendGameStart(c);
+	game_clock.restart();
+}
+
+void Server::OnTick() {
+	SendPlayerPosition(connected_clients[0], connected_clients[1]);
+	SendPlayerPosition(connected_clients[1], connected_clients[0]);
 }
 
 void Server::SendString(std::string data,ENetPeer * peer, enet_uint32 flags = ENET_PACKET_FLAG_RELIABLE) {
@@ -140,6 +152,14 @@ void Server::SendGameStart(User& user) {
 	p << MESSAGE_TYPE::START_MATCH;
 	ENetPacket* packet = p.GetENetPacket();
 	enet_peer_send(user.peer, 0, packet);
+	enet_host_flush(server);
+}
+
+void Server::SendPlayerPosition(User& userA, User& userB) {
+	Serial::Packet p;
+	p << MESSAGE_TYPE::PLAYER_UPDATE << userB.x << userB.y;
+	ENetPacket* packet = p.GetENetPacket();
+	enet_peer_send(userA.peer, 0, packet);
 	enet_host_flush(server);
 }
 
