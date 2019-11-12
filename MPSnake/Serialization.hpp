@@ -9,7 +9,7 @@ namespace Serial {
 		std::vector<char> data;
 		long cur = 0; 
 
-		Packet(){}
+		Packet() { _packet = NULL; }
 
 		Packet(ENetPacket* p) {
 			for (auto i = 0; i < p->dataLength; i++)
@@ -23,7 +23,7 @@ namespace Serial {
 		}
 
 		ENetPacket* GetENetPacket(enet_uint32 flags = ENET_PACKET_FLAG_RELIABLE) {
-			if (_packet == NULL) 
+			if (_packet == NULL)
 				_packet = enet_packet_create(&data[0], data.size(), flags);
 			return _packet;
 		}

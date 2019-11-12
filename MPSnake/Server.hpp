@@ -16,6 +16,7 @@ public:
 		bool is_ready = false;
 
 		unsigned short x = 0, y = 0;
+		char direction = 0;
 
 		bool operator== (ENetPeer* p) { return peer == p; }
 	};
@@ -49,7 +50,7 @@ public:
 	void SendUserData(User& user);
 	void SendGameData(ENetPeer* peer);
 	void SendGameStart(User& user);
-	void SendPlayerPosition(User& userA, User& userB);
+	void SendPlayerDirection(User& userA, User& userB);
 
 	std::vector<User> connected_clients;
 	enet_uint16 current_id = 0;

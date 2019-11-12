@@ -160,7 +160,7 @@ void Client::Disconnect() {
 }
 
 void Client::Start() {
-	int r = Connect("192.168.1.69", 7777);
+	int r = Connect("192.168.111.169", 7777);
 	if (r != 0) {
 		std::cout << "Failed to connect! ERR:" << r << "\n" ;
 		return;
@@ -180,8 +180,19 @@ void Client::Start() {
 				break;
 			case ENET_EVENT_TYPE_RECEIVE:
 			{
-				std::cout << "The server has sent a message!\n";
-				enet_packet_destroy(network_event.packet);
+				Serial::Packet packet(network_event.packet);
+				char id = 0;
+				packet >> id;
+				switch (id) {
+				case MESSAGE_TYPE::PLAYER_UPDATE:
+					packet >> other_snake.direction >> my_snake.direction;
+					my_snake.OnMove();
+					other_snake.OnMove();
+					SendReady();
+					break;
+				default:
+					std::cout << "UNRECOGNIZED MESSAGE RECEIVED!\n";
+				}
 			}
 			break;
 			case ENET_EVENT_TYPE_DISCONNECT:

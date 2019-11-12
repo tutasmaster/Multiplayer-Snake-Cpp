@@ -24,9 +24,10 @@ void Server::Start() {
 
 
 	ENetEvent e;
-
-	while (enet_host_service(server, &e, 0) >= 0)
+	bool running = true;
+	while (running)
 	{
+		enet_host_service(server, &e, 0);
 		switch (e.type)
 		{
 		case ENET_EVENT_TYPE_CONNECT:
@@ -34,7 +35,6 @@ void Server::Start() {
 			break;
 		case ENET_EVENT_TYPE_RECEIVE:
 		{
-			std::cout << "A client has sent a message!\n";
 			User * client = FindClient(e.peer);
 			char packet_id;
 			Serial::Packet p(e.packet);
@@ -42,6 +42,13 @@ void Server::Start() {
 			switch (packet_id) {
 			case MESSAGE_TYPE::READY:
 				client->is_ready = true;
+				break;
+			case MESSAGE_TYPE::DIRECTION:
+				p >> client->direction;
+				client->is_ready = true;
+				break;
+			default:
+				std::cout << "UNRECOGNIZED MESSAGE RECEIVED!\n";
 				break;
 			}
 		}
@@ -69,12 +76,14 @@ void Server::Start() {
 			if (hasStarted) OnStart();
 		}
 		else {
-			if (game_clock.getElapsedTime().asSeconds() > timestep) {
+			if (game_clock.getElapsedTime().asSeconds() > timestep && connected_clients[0].is_ready && connected_clients[1].is_ready) {
 				game_clock.restart();
 				OnTick();
 			}
 		}
 	}
+
+	std::cout << "SERVER TERMINATION/FAILURE!\n";
 
 	enet_host_destroy(server);
 	enet_deinitialize();
@@ -101,8 +110,10 @@ void Server::OnStart() {
 }
 
 void Server::OnTick() {
-	SendPlayerPosition(connected_clients[0], connected_clients[1]);
-	SendPlayerPosition(connected_clients[1], connected_clients[0]);
+	connected_clients[0].is_ready = false;
+	connected_clients[1].is_ready = false;
+	SendPlayerDirection(connected_clients[0], connected_clients[1]);
+	SendPlayerDirection(connected_clients[1], connected_clients[0]);
 }
 
 void Server::SendString(std::string data,ENetPeer * peer, enet_uint32 flags = ENET_PACKET_FLAG_RELIABLE) {
@@ -155,9 +166,9 @@ void Server::SendGameStart(User& user) {
 	enet_host_flush(server);
 }
 
-void Server::SendPlayerPosition(User& userA, User& userB) {
+void Server::SendPlayerDirection(User& userA, User& userB) {
 	Serial::Packet p;
-	p << MESSAGE_TYPE::PLAYER_UPDATE << userB.x << userB.y;
+	p << MESSAGE_TYPE::PLAYER_UPDATE << userB.direction << userA.direction;
 	ENetPacket* packet = p.GetENetPacket();
 	enet_peer_send(userA.peer, 0, packet);
 	enet_host_flush(server);
