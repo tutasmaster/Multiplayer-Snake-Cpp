@@ -36,7 +36,7 @@
 }*/
 
 Client::Client() : 
-	render_window(sf::VideoMode(300,300),"Snake",sf::Style::Close | sf::Style::Titlebar){
+	render_window(sf::VideoMode(600,600),"Snake",sf::Style::Close | sf::Style::Titlebar){
 
 }
 void Client::SendString(std::string data, enet_uint32 flags = ENET_PACKET_FLAG_RELIABLE) {
@@ -113,24 +113,24 @@ void Client::SendDirection() {
 
 void Client::DrawMap()
 {
-	sf::RectangleShape rs(sf::Vector2f(300 / map->width, 300 / map->height));
+	sf::RectangleShape rs(sf::Vector2f((RENDER_WIDTH / map->width)-1, (RENDER_HEIGHT / map->height)-1));
 	rs.setOutlineColor(sf::Color::Black);
 	rs.setOutlineThickness(1);
 	for (int j = 0; j < map->height; j++) {
 		for (int i = 0; i < map->width; i++) {
-			rs.setPosition(sf::Vector2f(i * (300 / map->width), j * (300 / map->height)));
+			rs.setPosition(sf::Vector2f(i * (RENDER_WIDTH / map->width), j * (RENDER_HEIGHT / map->height)));
 			render_window.draw(rs);
 		}
 	}
 }
 
 void Client::DrawSnake(Snake* snake) {
-	sf::RectangleShape rs(sf::Vector2f(300 / map->width, 300 / map->height));
+	sf::RectangleShape rs(sf::Vector2f((RENDER_WIDTH / map->width)-1, (RENDER_HEIGHT / map->height)-1));
 	rs.setOutlineColor(sf::Color::Black);
 	rs.setFillColor(sf::Color::Green);
 	rs.setOutlineThickness(1);
 	for (auto n : snake->body) {
-		rs.setPosition(n.x * (300 / map->width), n.y * (300 / map->height));
+		rs.setPosition(n.x * (RENDER_WIDTH / map->width), n.y * (RENDER_HEIGHT / map->height));
 		render_window.draw(rs);
 	}
 }
@@ -221,11 +221,17 @@ void Client::Start() {
 			}
 			else if (e.type == sf::Event::KeyPressed) {
 				if (e.key.code == sf::Keyboard::Right) {
-					my_snake.direction++;
+					if (my_snake.direction != 4) {
+						my_snake.direction++;
+						my_snake.direction = my_snake.direction % 4;
+					}
 					SendDirection();
 				}
 				else if (e.key.code == sf::Keyboard::Left) {
-					my_snake.direction--;
+					if(my_snake.direction != 4){
+						my_snake.direction--;
+						my_snake.direction = my_snake.direction < 0 ? 3 : my_snake.direction;
+					}
 					SendDirection();
 				}
 			}

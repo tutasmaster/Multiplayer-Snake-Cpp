@@ -25,8 +25,8 @@ public:
 	void Start();
 
 	/*GAME_LOGIC*/
-	Snake my_snake;
-	Snake other_snake;
+	Snake my_snake = Snake(0,0,0,10);
+	Snake other_snake = Snake(0,0,0,10);
 
 	std::unique_ptr<Map> map = nullptr;
 

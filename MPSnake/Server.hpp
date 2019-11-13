@@ -16,8 +16,9 @@ public:
 		ENetPeer* peer = NULL;
 		enet_uint16 id = 0;
 		bool is_ready = false;
+		bool is_dead = false;
 
-		Snake snake;
+		Snake snake = Snake(1,1,0,10);
 
 		bool operator== (ENetPeer* p) { return peer == p; }
 	};
@@ -35,8 +36,7 @@ public:
 		unsigned short x = 0, y = 0;
 		char dir = 0;
 	};
-	const std::array<Spawnpoint, 2> spawn_points { Spawnpoint{1,1,0} , Spawnpoint{0,25,2} };
-
+	const std::array<Spawnpoint, 2> spawn_points { Spawnpoint{1,1,EAST} , Spawnpoint{0,25,WEST} };
 
 	enum GameStatus {
 		waiting_for_players,

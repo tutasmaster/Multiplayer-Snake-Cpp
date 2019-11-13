@@ -45,7 +45,8 @@ void Server::Start() {
 				client->is_ready = true;
 				break;
 			case MESSAGE_TYPE::DIRECTION:
-				p >> client->snake.direction;
+				if(!client->is_dead)
+					p >> client->snake.direction;
 				break;
 			default:
 				std::cout << "UNRECOGNIZED MESSAGE RECEIVED!\n";
@@ -118,6 +119,9 @@ void Server::OnTick() {
 	connected_clients[1].is_ready = false;
 	connected_clients[0].snake.OnMove();
 	connected_clients[1].snake.OnMove();
+	if (!connected_clients[0].is_dead) connected_clients[0].is_dead == connected_clients[0].snake.CheckForCollision(connected_clients[1].snake);
+	if (!connected_clients[1].is_dead) connected_clients[1].is_dead == connected_clients[1].snake.CheckForCollision(connected_clients[0].snake);
+	
 	SendPlayerDirection(connected_clients[0], connected_clients[1]);
 	SendPlayerDirection(connected_clients[1], connected_clients[0]);
 }
@@ -174,7 +178,7 @@ void Server::SendGameStart(User& user, Spawnpoint s1, Spawnpoint s2) {
 
 void Server::SendPlayerDirection(User& userA, User& userB) {
 	Serial::Packet p;
-	p << MESSAGE_TYPE::PLAYER_UPDATE << userB.snake.direction << userA.snake.direction;
+	p << MESSAGE_TYPE::PLAYER_UPDATE << userB.snake.direction << (userA.is_dead ? (char)4 : userA.snake.direction);
 	ENetPacket* packet = p.GetENetPacket();
 	enet_peer_send(userA.peer, 0, packet);
 	enet_host_flush(server);

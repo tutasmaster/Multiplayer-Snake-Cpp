@@ -1,32 +1,68 @@
 #pragma once
 
+#define WIDTH 50
+#define HEIGHT 50
+
+#define RENDER_WIDTH 600
+#define RENDER_HEIGHT 600
+
+#define EAST 0
+#define SOUTH 1
+#define WEST 2
+#define NORTH 3
+
 struct Snake {
 	struct Node {
 		enet_uint16 x = 0, y = 0;
 	};
-	enet_uint16 size = 3;
+	enet_uint16 size = 10;
 	std::vector<Node> body;
 	char direction = 0;
 	void OnMove() {
-		for (auto i = 1; i < body.size(); i++) {
+
+		for (auto i = body.size() - 1; i >= 1; i--) {
 			body[i].x = body[i - 1].x;
 			body[i].y = body[i - 1].y;
 		}
 
-		switch (abs(direction % 4)) {
+		switch (abs(direction % 5)) {
 		case 0:
 			body[0].x++;
 			break;
 		case 1:
+		case -3:
 			body[0].y++;
 			break;
 		case 2:
+		case -2:
 			body[0].x--;
 			break;
 		case 3:
+		case -1:
 			body[0].y--;
 			break;
+		case 4:
+			break;
 		}
+
+		if (body[0].x < 0)
+			body[0].x = WIDTH;
+		else if (body[0].x >= WIDTH)
+			body[0].x = 0;
+
+		if (body[0].y < 0)
+			body[0].y = HEIGHT;
+		else if (body[0].y >= HEIGHT)
+			body[0].y = 0;
+	}
+
+	bool CheckForCollision(Snake& snake) {
+		for (auto& n : snake.body) {
+			if (body[0].x == n.x && body[0].y == n.y) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	void SetPosition(unsigned short x, unsigned short y) {for (auto& n : body) { n.x = x; n.y = y; }}
