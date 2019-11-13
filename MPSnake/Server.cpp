@@ -107,21 +107,25 @@ void Server::OnStart() {
 	current_status = in_game;
 
 
-	connected_clients[0].snake = Snake(spawn_points[0].x, spawn_points[0].y, spawn_points[0].dir, 3);
+	connected_clients[0].snake = Snake(spawn_points[0].x, spawn_points[0].y, spawn_points[0].dir, 10);
 	SendGameStart(connected_clients[0],spawn_points[0], spawn_points[1]);
-	connected_clients[1].snake = Snake(spawn_points[1].x, spawn_points[1].y, spawn_points[1].dir, 3);
+	connected_clients[1].snake = Snake(spawn_points[1].x, spawn_points[1].y, spawn_points[1].dir, 10);
 	SendGameStart(connected_clients[1], spawn_points[1], spawn_points[0]);
 	game_clock.restart();
+
+	std::cout << "X: " << spawn_points[0].x << " Y: " << spawn_points[0].y << "\n";
+	std::cout << "X: " << spawn_points[1].x << " Y: " << spawn_points[1].y << "\n";
 }
 
 void Server::OnTick() {
 	connected_clients[0].is_ready = false;
 	connected_clients[1].is_ready = false;
+	if (!connected_clients[0].is_dead)
+		connected_clients[0].is_dead = connected_clients[0].snake.CheckForCollision(connected_clients[1].snake);
+	if (!connected_clients[1].is_dead)
+		connected_clients[1].is_dead = connected_clients[1].snake.CheckForCollision(connected_clients[0].snake);
 	connected_clients[0].snake.OnMove();
 	connected_clients[1].snake.OnMove();
-	if (!connected_clients[0].is_dead) connected_clients[0].is_dead == connected_clients[0].snake.CheckForCollision(connected_clients[1].snake);
-	if (!connected_clients[1].is_dead) connected_clients[1].is_dead == connected_clients[1].snake.CheckForCollision(connected_clients[0].snake);
-	
 	SendPlayerDirection(connected_clients[0], connected_clients[1]);
 	SendPlayerDirection(connected_clients[1], connected_clients[0]);
 }

@@ -25,40 +25,38 @@ struct Snake {
 			body[i].y = body[i - 1].y;
 		}
 
-		switch (abs(direction % 5)) {
+		switch (direction) {
 		case 0:
 			body[0].x++;
 			break;
 		case 1:
-		case -3:
 			body[0].y++;
 			break;
 		case 2:
-		case -2:
 			body[0].x--;
 			break;
 		case 3:
-		case -1:
 			body[0].y--;
 			break;
 		case 4:
 			break;
 		}
 
-		if (body[0].x < 0)
-			body[0].x = WIDTH;
-		else if (body[0].x >= WIDTH)
+		if (body[0].x > WIDTH)
+			body[0].x = WIDTH - 1;
+		else if (body[0].x == WIDTH)
 			body[0].x = 0;
 
-		if (body[0].y < 0)
-			body[0].y = HEIGHT;
-		else if (body[0].y >= HEIGHT)
+		if (body[0].y > HEIGHT)
+			body[0].y = HEIGHT - 1;
+		else if (body[0].y == HEIGHT)
 			body[0].y = 0;
 	}
 
 	bool CheckForCollision(Snake& snake) {
 		for (auto& n : snake.body) {
 			if (body[0].x == n.x && body[0].y == n.y) {
+				direction = 4;
 				return true;
 			}
 		}

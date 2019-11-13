@@ -36,7 +36,7 @@ public:
 		unsigned short x = 0, y = 0;
 		char dir = 0;
 	};
-	const std::array<Spawnpoint, 2> spawn_points { Spawnpoint{1,1,EAST} , Spawnpoint{0,25,WEST} };
+	const std::array<Spawnpoint, 2> spawn_points { Spawnpoint{1,1,EAST} , Spawnpoint{1,25,WEST} };
 
 	enum GameStatus {
 		waiting_for_players,
