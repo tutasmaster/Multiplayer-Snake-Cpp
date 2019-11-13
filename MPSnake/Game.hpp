@@ -10,6 +10,7 @@
 #define SOUTH 1
 #define WEST 2
 #define NORTH 3
+#define DEAD 4
 
 struct Snake {
 	struct Node {

@@ -182,7 +182,7 @@ void Server::SendGameStart(User& user, Spawnpoint s1, Spawnpoint s2) {
 
 void Server::SendPlayerDirection(User& userA, User& userB) {
 	Serial::Packet p;
-	p << MESSAGE_TYPE::PLAYER_UPDATE << userB.snake.direction << (userA.is_dead ? (char)4 : userA.snake.direction);
+	p << MESSAGE_TYPE::PLAYER_UPDATE << userB.snake.direction << (userA.is_dead ? (char)DEAD : userA.snake.direction);
 	ENetPacket* packet = p.GetENetPacket();
 	enet_peer_send(userA.peer, 0, packet);
 	enet_host_flush(server);
