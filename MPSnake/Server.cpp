@@ -108,8 +108,11 @@ Server::User * Server::FindClient(ENetPeer* peer) {
 
 void Server::OnWaitForPlayers() {
 	std::cout << "Enough players have connected!\n";
-	for (auto& c : connected_clients) 
+	for (auto& c : connected_clients) {
+		c.is_ready = false;
+		c.is_dead = false;
 		SendGameData(c.peer);
+	}
 
 	current_status = starting;
 }
@@ -136,7 +139,7 @@ void Server::OnTick() {
 	if (!connected_clients[1].is_dead)
 		connected_clients[1].is_dead = connected_clients[1].snake.CheckForCollision(connected_clients[0].snake);
 	
-	if (connected_clients[0].is_dead && connected_clients[1].is_dead) {
+	if (connected_clients[0].is_dead || connected_clients[1].is_dead) {
 		OnGameEnd();
 	}
 	

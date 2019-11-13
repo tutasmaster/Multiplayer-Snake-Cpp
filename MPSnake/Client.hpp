@@ -22,7 +22,7 @@ public:
 	}network_data;
 
 	Client();
-	void Start();
+	void Start(std::string ip, int port);
 
 	/*GAME_LOGIC*/
 	Snake my_snake = Snake(0,0,0,10);
@@ -41,7 +41,7 @@ public:
 
 	/*DRAW_MAP*/
 	void DrawMap();
-	void DrawSnake(Snake * snake);
+	void DrawSnake(Snake * snake, sf::Color col);
 
 	sf::RenderWindow render_window;
 

@@ -66,6 +66,7 @@ int Client::Handshake() {
 				packet >> id;
 				network_data.id = id;
 				std::cout << "NETWORK_ID: " << id << "\n";
+				enet_packet_destroy(e.packet);
 			}
 			else if (type == MESSAGE_TYPE::GAME_DATA) {
 				unsigned short width = 0;
@@ -75,6 +76,7 @@ int Client::Handshake() {
 				map = std::make_unique<Map>(width, height);
 				std::cout << "MAP_SIZE: " << width << " , " << height << "\n";
 				SendReady();
+				enet_packet_destroy(e.packet);
 			}
 			else if (type == MESSAGE_TYPE::START_MATCH) {
 				unsigned short x1 = 0, x2 = 0, y1 = 0, y2 = 0;
@@ -85,6 +87,7 @@ int Client::Handshake() {
 				my_snake.direction = dir1;
 				other_snake.SetPosition(x2, y2);
 				other_snake.direction = dir2;
+				enet_packet_destroy(e.packet);
 				return 0;
 			}
 			break;
@@ -124,14 +127,20 @@ void Client::DrawMap()
 	}
 }
 
-void Client::DrawSnake(Snake* snake) {
+void Client::DrawSnake(Snake* snake, sf::Color col) {
 	sf::RectangleShape rs(sf::Vector2f((RENDER_WIDTH / map->width)-1, (RENDER_HEIGHT / map->height)-1));
 	rs.setOutlineColor(sf::Color::Black);
-	rs.setFillColor(sf::Color::Green);
+	rs.setFillColor(col);
 	rs.setOutlineThickness(1);
+	bool is_head = true;
 	for (auto n : snake->body) {
+		if (!is_head)
+			rs.setFillColor(col);
+		else
+			rs.setFillColor(sf::Color(col.r /2, col.g / 2, col.b / 2,255));
 		rs.setPosition(n.x * (RENDER_WIDTH / map->width), n.y * (RENDER_HEIGHT / map->height));
 		render_window.draw(rs);
+		is_head = false;
 	}
 }
 
@@ -158,17 +167,34 @@ int Client::Connect(std::string ip, enet_uint16 port) {
 }
 
 void Client::Disconnect() {
-	if(connected || client != NULL){
+	if(client != NULL){
 		enet_peer_disconnect(server, 0);
 		enet_host_flush(client);
+
+		ENetEvent network_event;
+		while (enet_host_service(client, &network_event, 3000) > 0)
+		{
+			switch (network_event.type)
+			{
+			case ENET_EVENT_TYPE_RECEIVE:
+				enet_packet_destroy(network_event.packet);
+				break;
+			case ENET_EVENT_TYPE_DISCONNECT:
+				break;
+			case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
+				break;
+			default:
+				break;
+			}
+		}
 
 		enet_deinitialize();
 		enet_host_destroy(client);
 	}
 }
 
-void Client::Start() {
-	int r = Connect("127.0.0.1", 7777);
+void Client::Start(std::string ip, int port) {
+	int r = Connect(ip, port);
 	if (r != 0) {
 		std::cout << "Failed to connect! ERR:" << r << "\n" ;
 		return;
@@ -245,16 +271,27 @@ void Client::Start() {
 		//std::cout << "FPS: " << 1 / fp << "\n";
 		DrawMap();
 
-		DrawSnake(&other_snake);
-		DrawSnake(&my_snake);
+		DrawSnake(&other_snake, sf::Color::Red);
+		DrawSnake(&my_snake, sf::Color::Green);
 
 		render_window.display();
 	}
+
+	Disconnect();
 }
 
 int main()
 {
+	std::string ip = "127.0.0.1";
+	int port = 7777;
+
+	std::cout << "IP : ";
+	std::cin >> ip;
+	std::cout << "PORT : ";
+	std::cin >> port;
+	std::cout << "\n";
+
 	Client client;
-	client.Start();
+	client.Start(ip,port);
 	return 0;
 }
