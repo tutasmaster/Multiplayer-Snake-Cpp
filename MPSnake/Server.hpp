@@ -17,6 +17,7 @@ public:
 		enet_uint16 id = 0;
 		bool is_ready = false;
 		bool is_dead = false;
+		bool is_connected = true;
 
 		Snake snake = Snake(1,1,0,10);
 
@@ -54,11 +55,13 @@ public:
 	void OnStart();
 	void OnWaitForPlayers();
 	void OnTick();
+	void OnGameEnd();
 
 	void SendUserData(User& user);
 	void SendGameData(ENetPeer* peer);
 	void SendGameStart(User& user, Spawnpoint s1, Spawnpoint s2);
 	void SendPlayerDirection(User& userA, User& userB);
+	void SendGameEnd(User& user);
 
 	std::vector<User> connected_clients;
 	enet_uint16 current_id = 0;

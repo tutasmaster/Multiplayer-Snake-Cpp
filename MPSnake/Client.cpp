@@ -198,6 +198,9 @@ void Client::Start() {
 					other_snake.OnMove();
 					SendReady();
 					break;
+				case MESSAGE_TYPE::GAME_END:
+					Handshake();
+					break;
 				default:
 					std::cout << "UNRECOGNIZED MESSAGE RECEIVED!\n";
 				}
@@ -221,14 +224,14 @@ void Client::Start() {
 			}
 			else if (e.type == sf::Event::KeyPressed) {
 				if (e.key.code == sf::Keyboard::Right) {
-					if (my_snake.direction != 4) {
+					if (my_snake.direction != DEAD) {
 						my_snake.direction++;
 						my_snake.direction = my_snake.direction % 4;
 					}
 					SendDirection();
 				}
 				else if (e.key.code == sf::Keyboard::Left) {
-					if(my_snake.direction != 4){
+					if(my_snake.direction != DEAD){
 						my_snake.direction--;
 						my_snake.direction = my_snake.direction < 0 ? 3 : my_snake.direction;
 					}

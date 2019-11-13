@@ -56,11 +56,21 @@ void Server::Start() {
 		}
 			break;
 		case ENET_EVENT_TYPE_DISCONNECT:
-			OnDisconnect(e);
+			if (current_status == GameStatus::waiting_for_players)
+				OnDisconnect(e);
+			else {
+				FindClient(e.peer)->is_connected = false;
+				OnGameEnd();
+			}
 			break;
 		case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
 			std::cout << "A client has timed out!\n";
-			OnDisconnect(e);
+			if (current_status == GameStatus::waiting_for_players)
+				OnDisconnect(e);
+			else {
+				FindClient(e.peer)->is_connected = false;
+				OnGameEnd();
+			}
 			break;
 		default:
 			break;
@@ -97,6 +107,7 @@ Server::User * Server::FindClient(ENetPeer* peer) {
 }
 
 void Server::OnWaitForPlayers() {
+	std::cout << "Enough players have connected!\n";
 	for (auto& c : connected_clients) 
 		SendGameData(c.peer);
 
@@ -124,6 +135,11 @@ void Server::OnTick() {
 		connected_clients[0].is_dead = connected_clients[0].snake.CheckForCollision(connected_clients[1].snake);
 	if (!connected_clients[1].is_dead)
 		connected_clients[1].is_dead = connected_clients[1].snake.CheckForCollision(connected_clients[0].snake);
+	
+	if (connected_clients[0].is_dead && connected_clients[1].is_dead) {
+		OnGameEnd();
+	}
+	
 	connected_clients[0].snake.OnMove();
 	connected_clients[1].snake.OnMove();
 	SendPlayerDirection(connected_clients[0], connected_clients[1]);
@@ -153,6 +169,22 @@ void Server::OnDisconnect(ENetEvent& e)
 
 	auto it = std::find(connected_clients.begin(), connected_clients.end(), e.peer);
 	connected_clients.erase(it);
+}
+
+void Server::OnGameEnd() {
+	auto it = connected_clients.begin();
+	while (it != connected_clients.end()) {
+		auto c = *it;
+		if (!c.is_connected)
+			it = connected_clients.erase(it);
+		else 
+			++it;
+	}
+
+	for(auto &c : connected_clients)
+		SendGameEnd(c);
+
+	current_status = GameStatus::waiting_for_players;
 }
 
 void Server::SendGameData(ENetPeer* peer)
@@ -185,6 +217,15 @@ void Server::SendPlayerDirection(User& userA, User& userB) {
 	p << MESSAGE_TYPE::PLAYER_UPDATE << userB.snake.direction << (userA.is_dead ? (char)DEAD : userA.snake.direction);
 	ENetPacket* packet = p.GetENetPacket();
 	enet_peer_send(userA.peer, 0, packet);
+	enet_host_flush(server);
+}
+
+void Server::SendGameEnd(User& user)
+{
+	Serial::Packet p;
+	p << MESSAGE_TYPE::GAME_END;
+	ENetPacket* packet = p.GetENetPacket();
+	enet_peer_send(user.peer, 0, packet);
 	enet_host_flush(server);
 }
 
