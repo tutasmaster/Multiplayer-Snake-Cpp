@@ -26,7 +26,7 @@ void Server::Start() {
 	ENetEvent e;
 	while (true)
 	{
-		enet_host_service(server, &e, 0);
+		enet_host_service(server, &e, 15);
 		switch (e.type)
 		{
 		case ENET_EVENT_TYPE_CONNECT:
@@ -45,12 +45,13 @@ void Server::Start() {
 				client->is_ready = true;
 				break;
 			case MESSAGE_TYPE::DIRECTION:
-				p >> client->direction;
+				p >> client->snake.direction;
 				break;
 			default:
 				std::cout << "UNRECOGNIZED MESSAGE RECEIVED!\n";
 				break;
 			}
+			enet_packet_destroy(e.packet);
 		}
 			break;
 		case ENET_EVENT_TYPE_DISCONNECT:
@@ -104,14 +105,19 @@ void Server::OnWaitForPlayers() {
 void Server::OnStart() {
 	current_status = in_game;
 
-	for (auto& c : connected_clients)
-		SendGameStart(c);
+
+	connected_clients[0].snake = Snake(spawn_points[0].x, spawn_points[0].y, spawn_points[0].dir, 3);
+	SendGameStart(connected_clients[0],spawn_points[0], spawn_points[1]);
+	connected_clients[1].snake = Snake(spawn_points[1].x, spawn_points[1].y, spawn_points[1].dir, 3);
+	SendGameStart(connected_clients[1], spawn_points[1], spawn_points[0]);
 	game_clock.restart();
 }
 
 void Server::OnTick() {
 	connected_clients[0].is_ready = false;
 	connected_clients[1].is_ready = false;
+	connected_clients[0].snake.OnMove();
+	connected_clients[1].snake.OnMove();
 	SendPlayerDirection(connected_clients[0], connected_clients[1]);
 	SendPlayerDirection(connected_clients[1], connected_clients[0]);
 }
@@ -158,9 +164,9 @@ void Server::SendUserData(User& user) {
 	enet_host_flush(server);
 }
 
-void Server::SendGameStart(User& user) {
+void Server::SendGameStart(User& user, Spawnpoint s1, Spawnpoint s2) {
 	Serial::Packet p;
-	p << MESSAGE_TYPE::START_MATCH;
+	p << MESSAGE_TYPE::START_MATCH << s1.x << s1.y << s1.dir << s2.x << s2.y << s2.dir;
 	ENetPacket* packet = p.GetENetPacket();
 	enet_peer_send(user.peer, 0, packet);
 	enet_host_flush(server);
@@ -168,7 +174,7 @@ void Server::SendGameStart(User& user) {
 
 void Server::SendPlayerDirection(User& userA, User& userB) {
 	Serial::Packet p;
-	p << MESSAGE_TYPE::PLAYER_UPDATE << userB.direction << userA.direction;
+	p << MESSAGE_TYPE::PLAYER_UPDATE << userB.snake.direction << userA.snake.direction;
 	ENetPacket* packet = p.GetENetPacket();
 	enet_peer_send(userA.peer, 0, packet);
 	enet_host_flush(server);
@@ -176,6 +182,7 @@ void Server::SendPlayerDirection(User& userA, User& userB) {
 
 int main() {
 	Server server;
+
 	server.Start();
 	return 0;
 }

@@ -3,9 +3,11 @@
 #define ENET_IMPLEMENTATION
 #include "enet.h"
 #include <iostream>
+#include <array>
 #include "Serialization.hpp"
 #include "Message.hpp"
 #include "SFML/System.hpp"
+#include "Game.hpp"
 
 class Server {
 public:
@@ -15,8 +17,7 @@ public:
 		enet_uint16 id = 0;
 		bool is_ready = false;
 
-		unsigned short x = 0, y = 0;
-		char direction = 0;
+		Snake snake;
 
 		bool operator== (ENetPeer* p) { return peer == p; }
 	};
@@ -29,6 +30,13 @@ public:
 		enet_uint16 map_width = 50, map_height = 50;
 		Food food_list[50];
 	}game_data;
+
+	struct Spawnpoint {
+		unsigned short x = 0, y = 0;
+		char dir = 0;
+	};
+	const std::array<Spawnpoint, 2> spawn_points { Spawnpoint{1,1,0} , Spawnpoint{0,25,2} };
+
 
 	enum GameStatus {
 		waiting_for_players,
@@ -49,14 +57,14 @@ public:
 
 	void SendUserData(User& user);
 	void SendGameData(ENetPeer* peer);
-	void SendGameStart(User& user);
+	void SendGameStart(User& user, Spawnpoint s1, Spawnpoint s2);
 	void SendPlayerDirection(User& userA, User& userB);
 
 	std::vector<User> connected_clients;
 	enet_uint16 current_id = 0;
 
 	sf::Clock game_clock;
-	const float timestep = 1;
+	const float timestep = 0.2;
 
 	ENetHost* server = NULL;
 };

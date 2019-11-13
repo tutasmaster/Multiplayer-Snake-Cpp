@@ -18,8 +18,8 @@ namespace Serial {
 		}
 
 		~Packet() {
-			if(_packet != NULL)
-				enet_packet_destroy(_packet);
+			/*if(_packet != NULL)
+				enet_packet_destroy(_packet);*/
 		}
 
 		ENetPacket* GetENetPacket(enet_uint32 flags = ENET_PACKET_FLAG_RELIABLE) {

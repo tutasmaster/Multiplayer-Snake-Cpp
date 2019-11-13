@@ -4,6 +4,7 @@
 #include "enet.h"
 #include "SFML/Graphics.hpp"
 #include "Serialization.hpp"
+#include "Game.hpp"
 #include "Message.hpp"
 #include <iostream>
 #include <vector>
@@ -11,39 +12,6 @@
 struct Map {
 	Map(int w,int h) : width(w), height(h){}
 	enet_uint16 width, height;
-};
-
-struct Snake {
-	struct Node {
-		enet_uint16 x = 0, y = 0;
-	};
-	enet_uint16 size = 3;
-	std::vector<Node> body;
-	char direction = 0;
-	void OnMove() {
-		for (auto i = 1; i < body.size(); i++) {
-			body[i].x = body[i - 1].x;
-			body[i].y = body[i - 1].y;
-		}
-
-		switch (direction % 4) {
-			case 0:
-				body[0].x++;
-				break;
-			case 1:
-				body[0].y++;
-				break;
-			case 2:
-				body[0].x--;
-				break;
-			case 3:
-				body[0].y--;
-				break;
-		}
-	}
-	Snake(enet_uint16 x = 1, enet_uint16 y = 1, enet_uint16 size = 3) : size(size) { 
-		for (auto i = 0; i < size; i++) body.push_back({ x,y }); 
-	}
 };
 
 class Client {

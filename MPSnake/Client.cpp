@@ -77,6 +77,14 @@ int Client::Handshake() {
 				SendReady();
 			}
 			else if (type == MESSAGE_TYPE::START_MATCH) {
+				unsigned short x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+				char dir1 = 0, dir2 = 0;
+				packet >> x1 >> y1 >> dir1 >> x2 >> y2 >> dir2;
+				std::cout << "Spawnpoint: " << x1 << " : " << y1 << " : " << (int)dir1 << "\n";
+				my_snake.SetPosition(x1, y1);
+				my_snake.direction = dir1;
+				other_snake.SetPosition(x2, y2);
+				other_snake.direction = dir2;
 				return 0;
 			}
 			break;
@@ -193,6 +201,7 @@ void Client::Start() {
 				default:
 					std::cout << "UNRECOGNIZED MESSAGE RECEIVED!\n";
 				}
+				enet_packet_destroy(network_event.packet);
 			}
 			break;
 			case ENET_EVENT_TYPE_DISCONNECT:
