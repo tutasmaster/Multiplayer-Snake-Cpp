@@ -47,6 +47,7 @@ void Client::SendString(std::string data, enet_uint32 flags = ENET_PACKET_FLAG_R
 }
 
 int Client::Handshake() {
+	snake_list.clear();
 	ENetEvent e;
 	while (enet_host_service(client, &e, 5000) >= 0)
 	{
@@ -71,22 +72,28 @@ int Client::Handshake() {
 			else if (type == MESSAGE_TYPE::GAME_DATA) {
 				unsigned short width = 0;
 				unsigned short height = 0;
+				unsigned short extras = 0;
 
-				packet >> width >> height;
+				packet >> width >> height >> extras;
 				map = std::make_unique<Map>(width, height);
 				std::cout << "MAP_SIZE: " << width << " , " << height << "\n";
+				for(int i = 0; i < extras; i++)
+					snake_list.push_back(Snake(1,1,EAST,10));
 				SendReady();
 				enet_packet_destroy(e.packet);
 			}
 			else if (type == MESSAGE_TYPE::START_MATCH) {
-				unsigned short x1 = 0, x2 = 0, y1 = 0, y2 = 0;
-				char dir1 = 0, dir2 = 0;
-				packet >> x1 >> y1 >> dir1 >> x2 >> y2 >> dir2;
-				std::cout << "Spawnpoint: " << x1 << " : " << y1 << " : " << (int)dir1 << "\n";
-				my_snake.SetPosition(x1, y1);
-				my_snake.direction = dir1;
-				other_snake.SetPosition(x2, y2);
-				other_snake.direction = dir2;
+				unsigned short x = 0, y = 0;
+				char dir = 0;
+				for (int i = 0; i < snake_list.size(); i++) {
+					packet >> x >> y >> dir;
+					snake_list[i].SetPosition(x, y);
+					snake_list[i].direction = dir;
+				}
+				packet >> x >> y >> dir;
+				std::cout << "Spawnpoint: " << x << " : " << y << " : " << (int)dir << "\n";
+				my_snake.SetPosition(x, y);
+				my_snake.direction = dir;
 				enet_packet_destroy(e.packet);
 				return 0;
 			}
@@ -144,7 +151,7 @@ void Client::DrawSnake(Snake* snake, sf::Color col) {
 	}
 }
 
-int Client::Connect(std::string ip, enet_uint16 port) {
+int Client::Connect(std::string ip = "127.0.0.1", enet_uint16 port = 7777) {
 	if (enet_initialize() != 0)
 		return 1;
 
@@ -219,13 +226,23 @@ void Client::Start(std::string ip, int port) {
 				packet >> id;
 				switch (id) {
 				case MESSAGE_TYPE::PLAYER_UPDATE:
-					packet >> other_snake.direction >> my_snake.direction;
+					for (int i = 0; i < snake_list.size(); i++) {
+						packet >> snake_list[i].direction;
+						snake_list[i].OnMove();
+					}
+					packet >> my_snake.direction;
 					my_snake.OnMove();
-					other_snake.OnMove();
 					SendReady();
 					break;
 				case MESSAGE_TYPE::GAME_END:
 					Handshake();
+					break;
+				case MESSAGE_TYPE::PLAYER_DEATH:
+				{
+					unsigned short i = 0;
+					packet >> i;
+					snake_list[i].direction = 4;
+				}
 					break;
 				default:
 					std::cout << "UNRECOGNIZED MESSAGE RECEIVED!\n";
@@ -271,7 +288,8 @@ void Client::Start(std::string ip, int port) {
 		//std::cout << "FPS: " << 1 / fp << "\n";
 		DrawMap();
 
-		DrawSnake(&other_snake, sf::Color::Red);
+		for(auto &s : snake_list)
+			DrawSnake(&s, sf::Color::Red);
 		DrawSnake(&my_snake, sf::Color::Green);
 
 		render_window.display();
@@ -285,11 +303,11 @@ int main()
 	std::string ip = "127.0.0.1";
 	int port = 7777;
 
-	std::cout << "IP : ";
+	/*std::cout << "IP : ";
 	std::cin >> ip;
 	std::cout << "PORT : ";
 	std::cin >> port;
-	std::cout << "\n";
+	std::cout << "\n";*/
 
 	Client client;
 	client.Start(ip,port);

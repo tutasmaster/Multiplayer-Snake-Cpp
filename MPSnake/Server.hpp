@@ -18,6 +18,7 @@ public:
 		bool is_ready = false;
 		bool is_dead = false;
 		bool is_connected = true;
+		bool is_playing = false;
 
 		Snake snake = Snake(1,1,0,10);
 
@@ -37,7 +38,19 @@ public:
 		unsigned short x = 0, y = 0;
 		char dir = 0;
 	};
-	const std::array<Spawnpoint, 2> spawn_points { Spawnpoint{1,1,EAST} , Spawnpoint{1,25,WEST} };
+	const std::array<Spawnpoint, MAXIMUM_PLAYERS> spawn_points 
+	{ 
+		Spawnpoint{1,1  ,EAST}, 
+		Spawnpoint{48,6 ,WEST},
+		Spawnpoint{1,11 ,EAST},
+		Spawnpoint{48,16,WEST},
+		Spawnpoint{1,21 ,EAST},
+		Spawnpoint{48,26,WEST},
+		Spawnpoint{1,31 ,EAST},
+		Spawnpoint{48,36,WEST},
+		Spawnpoint{1,41 ,EAST},
+		Spawnpoint{48,46,WEST}
+	};
 
 	enum GameStatus {
 		waiting_for_players,
@@ -59,15 +72,18 @@ public:
 
 	void SendUserData(User& user);
 	void SendGameData(ENetPeer* peer);
-	void SendGameStart(User& user, Spawnpoint s1, Spawnpoint s2);
-	void SendPlayerDirection(User& userA, User& userB);
+	void SendGameStart(User& user);
+	void SendPlayerDirection(User& user);
 	void SendGameEnd(User& user);
+	void SendDeath(User& userA, User& userB);
+	void UpdateDeath(User& user);
 
 	std::vector<User> connected_clients;
 	enet_uint16 current_id = 0;
 
 	sf::Clock game_clock;
 	const float timestep = 0.1;
+	const float wait_time = 10;
 
 	ENetHost* server = NULL;
 };

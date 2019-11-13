@@ -6,6 +6,8 @@
 #define RENDER_WIDTH 600
 #define RENDER_HEIGHT 600
 
+#define MAXIMUM_PLAYERS 12
+
 #define EAST 0
 #define SOUTH 1
 #define WEST 2

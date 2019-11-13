@@ -7,7 +7,8 @@ const enum MESSAGE_TYPE : char {
 	READY = 3,        //CLIENT -> SERVER
 	DIRECTION = 4,    //CLIENT -> SERVER
 	PLAYER_UPDATE = 5,//SERVER -> CLIENT
-	GAME_END = 6      //SERVER -> CLIENT
+	GAME_END = 6,     //SERVER -> CLIENT
+	PLAYER_DEATH = 7         //SERVER -> CLIENT
 };
 
 

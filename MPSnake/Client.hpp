@@ -26,7 +26,7 @@ public:
 
 	/*GAME_LOGIC*/
 	Snake my_snake = Snake(0,0,0,10);
-	Snake other_snake = Snake(0,0,0,10);
+	std::vector<Snake> snake_list;
 
 	std::unique_ptr<Map> map = nullptr;
 
