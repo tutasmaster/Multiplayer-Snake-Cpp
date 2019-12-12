@@ -28,7 +28,7 @@ namespace Serial {
 			return _packet;
 		}
 
-		Packet& operator<<(float d) { data.push_back(((long)f & 0xff)); data.push_back(((long)f & 0xff00) >> 8); data.push_back(((long)f & 0xff0000) >> 16); data.push_back(((long)f & 0xff000000) >> 24); return *this; }
+		Packet& operator<<(float d) { data.push_back(((long)d & 0xff)); data.push_back(((long)d & 0xff00) >> 8); data.push_back(((long)d & 0xff0000) >> 16); data.push_back(((long)d & 0xff000000) >> 24); return *this; }
 		Packet& operator<<(unsigned char d) { data.push_back(d); return *this; }
 		Packet& operator<<(unsigned short d)	{ data.push_back(d & 0xFF); data.push_back((d & 0xFF00) >> 8); return *this; }
 		Packet& operator<<(unsigned int d) { data.push_back(d & 0xFF); data.push_back((d & 0xFF00) >> 8); data.push_back((d & 0xFF0000) >> 16); data.push_back((d & 0xFF000000) >> 24); return *this; }

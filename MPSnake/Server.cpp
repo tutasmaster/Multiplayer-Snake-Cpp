@@ -59,7 +59,11 @@ void Server::Start() {
 			if (current_status == GameStatus::waiting_for_players)
 				OnDisconnect(e);
 			else {
-				FindClient(e.peer)->is_connected = false;
+				User* client = FindClient(e.peer);
+				client->is_connected = false;
+				client->is_dead = true;
+				UpdateDeath(*client);
+				OnGameEnd();
 			}
 			break;
 		case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
@@ -155,6 +159,8 @@ void Server::OnTick() {
 		SendPlayerDirection(c);
 	}
 
+	OnGameEnd();
+
 	/*if (connected_clients[0].is_dead || connected_clients[1].is_dead) {
 		OnGameEnd();
 	}*/
@@ -195,6 +201,13 @@ void Server::OnGameEnd() {
 			++it;
 	}
 
+	int life_count = 0;
+	for (auto& c : connected_clients) {
+		if (!c.is_dead)
+			life_count++;
+	}
+
+	if (life_count > 1) return;
 	for(auto &c : connected_clients)
 		SendGameEnd(c);
 
